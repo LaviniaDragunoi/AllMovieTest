@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">AllMovieTest</string>
+    <string name="vote_count_title"><b>Vote Count</b></string>
+    <string name="overview_title"><b>Overview:</b></string>
+    <string name="grid_rows">2</string>
+    <string name="no_movie">No Movie One</string>
+    <string name="sort_by">Sort by:</string>
+    <string name="popular">popular</string>
+    <string name="most_popular">Most popular</string>
+    <string name="rated">top_rated</string>
+    <string name="top_rated">Top rated</string>
+    <string name="favorites_title">Your favorites</string>
+    <string name="share">Share</string>
+    <string name="error_loading_movie">Movie details are not available.</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="no_connection">It seems to be a problem with your connection.</string>
+    <string name="error_loading">Sorry! It was an error loading the movie list.</string>
+    <string name="review_title"><b>Reviews:</b></string>
+    <string name="trailer_title"><b>Trailers:</b></string>
+    <string name="no_reviews"><b>No review available.</b></string>
+    <string name="no_trailers"><b>No trailers available.</b></string>
+    <string name="added">You added movie in the favorite movie list.</string>
+    <string name="deleted">You removed movie from favorite movie list.</string>
+</resources>

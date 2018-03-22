@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="circle_dimen">30dp</dimen>
+    <dimen name="rectangle_height">25dp</dimen>
+    <dimen name="rectangle_width">85dp</dimen>
+    <dimen name="two_hundred_dp">200dp</dimen>
+    <dimen name="nav_drawer_height">150dp</dimen>
+    <dimen name="five_dp">5dp</dimen>
+    <dimen name="zero_dp">0dp</dimen>
+    <dimen name="one_dp">1dp</dimen>
+    <dimen name="text_margins">8dp</dimen>
+    <dimen name="text_size">16sp</dimen>
+    <dimen name="one_hundred_dp">100dp</dimen>
+    <dimen name="ten_dp">10dp</dimen>
+    <dimen name="sixteen_dp">16dp</dimen>
+    <dimen name="sixty_dp">60dp</dimen>
+    <dimen name="fab_dimen">40dp</dimen>
+</resources>

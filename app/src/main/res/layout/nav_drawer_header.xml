@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/nav_drawer_height"
+    android:background="?attr/colorPrimary"
+    android:orientation="vertical"
+    android:padding="@dimen/sixteen_dp">
+
+    <ImageView
+        android:layout_width="@dimen/sixty_dp"
+        android:layout_height="@dimen/sixty_dp"
+        android:contentDescription="@string/app_name"
+        android:gravity="start"
+        android:src="@drawable/ic_launcher_round" />
+
+    <TextView
+        android:id="@+id/popularity_list_movie_title"
+        style="@style/MatchMatch"
+        android:drawableRight="@drawable/ic_people_black_24dp"
+        android:gravity="bottom"
+        android:text="@string/app_name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/soft"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/rated_list_movie_title"
+        style="@style/MatchMatch"
+        android:drawableRight="@drawable/ic_stars_black_24dp"
+        android:gravity="bottom"
+        android:text="@string/app_name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/soft"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/favorite_list_movie_title"
+        style="@style/MatchMatch"
+        android:drawableRight="@drawable/ic_favorite_red"
+        android:gravity="bottom"
+        android:text="@string/app_name"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/soft"
+        android:textStyle="bold"
+        android:visibility="gone"/>
+
+</LinearLayout>

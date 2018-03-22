@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/WMatchHWrap">
+
+    <ImageView
+        android:id="@+id/movie_image_List"
+        style="@style/MatchMatch"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY" />
+
+    <TextView
+        android:id="@+id/rating_value_tv"
+        style="@style/TextStyle"
+        android:layout_marginRight="@dimen/text_margins"
+        android:layout_gravity="end"
+        android:background="@drawable/cyrcle"
+        android:gravity="center"
+        android:layout_marginEnd="@dimen/text_margins" />
+
+    <include
+        android:id="@+id/included_fab_main"
+        layout="@layout/fab"
+        android:layout_margin="@dimen/five_dp"
+        android:layout_gravity="bottom|end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+</FrameLayout>

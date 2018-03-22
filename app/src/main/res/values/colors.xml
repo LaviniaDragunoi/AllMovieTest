@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#404040</color>
+    <color name="colorPrimaryDark">#272727</color>
+    <color name="colorAccent">#eaa61e</color>
+    <color name="deepGold">#eaa61e</color>
+    <color name="softGold">#FFEC8B</color>
+    <color name="soft">#E5EEC1</color>
+    <color name="red">#BF1313</color>
+    <color name="transparentColor">#66F9F9F9</color>
+</resources>

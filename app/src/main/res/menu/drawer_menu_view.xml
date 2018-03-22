@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/sort_by_title"
+        android:title="@string/sort_by" />
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/most_popular"
+            android:icon="@drawable/ic_people_black_24dp"
+            android:title="@string/most_popular"/>
+        <item
+            android:id="@+id/top_rated"
+            android:icon="@drawable/ic_stars_black_24dp"
+            android:title="@string/top_rated"/>
+        <item
+            android:id="@+id/favorite_movie"
+            android:icon="@drawable/ic_favorite_red"
+            android:title="@string/favorites_title" />
+    </group>
+
+</menu>

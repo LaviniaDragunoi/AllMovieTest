@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/WMatchHWrap"
+    tools:context="com.example.user.allmovietest.MainActivity">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/movie_list"
+        style="@style/MatchMatch">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="@style/WrapWrap"
+        android:layout_gravity="center"
+        android:visibility="visible" />
+    <TextView
+        android:id="@+id/error_loading_movie_list"
+        style="@style/TextStyleTitles"
+        android:text="@string/error_loading"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+</FrameLayout>
