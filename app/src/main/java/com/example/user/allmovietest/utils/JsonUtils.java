@@ -51,7 +51,7 @@ public class JsonUtils {
             = "https://api.themoviedb.org/3/movie";
 
     private static final String PARAM_KEY = "api_key";
-    private static final String API_KEY = "609f9fd659b2e51b4667367c2ca5c54a";
+    private static final String API_KEY = "your key";
 
 
 
