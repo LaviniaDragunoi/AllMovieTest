@@ -3,6 +3,8 @@ package com.example.user.allmovietest;
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -21,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.user.allmovietest.data.FavoriteDBHelper;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
@@ -42,6 +45,7 @@ import java.util.List;
 
 import okhttp3.Response;
 
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.CONTENT_URI;
 import static java.lang.String.valueOf;
 
 /**
@@ -61,6 +65,7 @@ public class DetailActivity extends AppCompatActivity {
     private static final String REVIEW_URL_PATH = "reviews";
     private static final String VIDEO_URL_PATH = "videos";
     SQLiteDatabase db;
+    Context mContext;
 
     private final int TRAILER_LOADER = 8;
     private final int REVIEWS_LOADER = 4;
@@ -218,17 +223,42 @@ public class DetailActivity extends AppCompatActivity {
         posterMovie = findViewById(R.id.movie_poster_details_view);
 
         Intent intent = getIntent();
-        String intentName = "";
-        if(intent != null) intentName = valueOf(intent.getComponent());
-        if(intentName.equals("Movie")){
-            currentMovie = intent.getParcelableExtra("Movie");
-        }else if(intentName.equals("FavoriteMovie")){
-            currentMovie = (MovieObject) intent.getSerializableExtra("FavoriteMovie");
-        }
+
+        currentMovie = intent.getParcelableExtra("Movie");
+
             String moviePosterUrlString = MovieAdapter.buildPosterUrl(currentMovie.getMoviePoster());
             Picasso.with(this).load(moviePosterUrlString).into(posterMovie);
             displayMovieUI(currentMovie);
             setTitle(currentMovie.getOriginalTitle());
+
+        favoriteViewDetailsContent = findViewById(R.id.favorite_details_content);
+        if(ManageFavoritesUtils.isAmongFavorites(this, currentMovie.getMovieId())){
+            favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite_red);
+        }else {
+            favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite);
+        }
+        favoriteViewDetailsContent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //get the Uri DB of the movieItem if was found in the DB
+                if(ManageFavoritesUtils.isAmongFavorites(DetailActivity.this,
+                        currentMovie.getMovieId())){
+                    favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite);
+                    int moviesRemoved = ManageFavoritesUtils.removeFromFavorite(
+                            DetailActivity.this,currentMovie.getMovieId());
+                    if(moviesRemoved > 0) Toast.makeText(DetailActivity.this,
+                            getString(R.string.deleted), Toast.LENGTH_SHORT).show();
+
+                }else {
+                    favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite_red);
+                    ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(currentMovie);
+                    Uri uri = getContentResolver().insert(CONTENT_URI,cv);
+                    if(uri != null)
+                        Toast.makeText(DetailActivity.this,getString(R.string.added),
+                                Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
     }
 
@@ -237,7 +267,7 @@ public class DetailActivity extends AppCompatActivity {
      * in the activity_detail.xml layout
      * @param movie the MovieObject that contains all information needed
      */
-    private void displayMovieUI(MovieObject movie) {
+    private void displayMovieUI(final MovieObject movie) {
         releaseDateTV = findViewById(R.id.release_date_tv);
         releaseDateTV.setText(movie.getReleaseDate());
 
@@ -252,9 +282,6 @@ public class DetailActivity extends AppCompatActivity {
 
         ratingBar = findViewById(R.id.rating_bar);
         ratingBar.setRating((float) movie.getRating());
-
-        favoriteViewDetailsContent = findViewById(R.id.favorite_details_content);
-
     }
         @Override
         public boolean onCreateOptionsMenu (Menu menu){

@@ -7,11 +7,10 @@ import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -24,9 +23,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.user.allmovietest.data.FavoriteContract;
-import com.example.user.allmovietest.data.FavoriteCursorAdapter;
+import com.example.user.allmovietest.data.FavoriteDBHelper;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.example.user.allmovietest.movies.MovieAdapter;
 import com.example.user.allmovietest.movies.MovieObject;
@@ -39,6 +39,14 @@ import java.util.List;
 
 import okhttp3.Response;
 
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_MOVIE_ID;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_MOVIE_POSTER;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_ORIGINAL_TITLE;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_OVERVIEW;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_POPULARITY;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_RATING;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_RELEASE_DATE;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_VOUT_COUNT;
 import static java.lang.Integer.valueOf;
 
 /**
@@ -49,14 +57,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int MOVIE_LOADER_ID = 3;
     public String sortBy = "top_rated";
     private MovieAdapter mAdapter;
-    private FavoriteCursorAdapter mFavoriteAdapter;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     public  ProgressBar progressBar;
-    private FloatingActionButton favFab;
     public  RecyclerView movieRV;
-    private final int FAVORITE_LOADER = 6;
-    Cursor mCursor;
+    private TextView noFavoriteTextView;
+    public final int FAVORITE_LOADER = 6;
+    SQLiteDatabase mDb;
 
     LoaderManager.LoaderCallbacks<List<MovieObject>> movieLoader = new LoaderManager
             .LoaderCallbacks<List<MovieObject>>() {
@@ -80,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                 public List<MovieObject> loadInBackground() {
                         List<MovieObject> movieObjectList = new ArrayList<>();
-
                         URL requestUrl = null;
                         try {
                             requestUrl = JsonUtils.getUrlResponse(sortBy);
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     };
 
-    LoaderManager.LoaderCallbacks<Cursor> favoritesLoader = new LoaderManager.LoaderCallbacks<Cursor>() {
+   public LoaderManager.LoaderCallbacks<Cursor> favoritesLoader = new LoaderManager.LoaderCallbacks<Cursor>() {
         @SuppressLint("StaticFieldLeak")
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -157,14 +163,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            mFavoriteAdapter.swapCursor(data);
+            List<MovieObject> movieObjectList = new ArrayList<>();
+            while (data.moveToNext()) {
+                int movieId = data.getInt(data.getColumnIndex(COLUMN_MOVIE_ID));
+                String moviePoster = data.getString(data.getColumnIndex(COLUMN_MOVIE_POSTER));
+                String overview = data.getString(data.getColumnIndex(COLUMN_OVERVIEW));
+                double rating = data.getDouble(data.getColumnIndex(COLUMN_RATING));
+                String releaseDate = data.getString(data.getColumnIndex(COLUMN_RELEASE_DATE));
+                int voteCount = data.getInt(data.getColumnIndex(COLUMN_VOUT_COUNT));
+                String originalTitle = data.getString(data.getColumnIndex(COLUMN_ORIGINAL_TITLE));
+                double popularity = data.getDouble(data.getColumnIndex(COLUMN_POPULARITY));
+                MovieObject movieObject = new MovieObject(originalTitle, moviePoster,
+                        overview, rating, popularity, releaseDate, voteCount, movieId);
+                movieObjectList.add(movieObject);
+                mAdapter.addAll(movieObjectList);
 
+            }
         }
 
         @Override
         public void onLoaderReset(Loader<Cursor> loader) {
-
-            mFavoriteAdapter.swapCursor(null);
+            mAdapter.clearAll();
         }
     };
 
@@ -173,8 +192,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        FavoriteDBHelper favoriteDBHelper = new FavoriteDBHelper(this);
+        mDb = favoriteDBHelper.getWritableDatabase();
+
         progressBar = findViewById(R.id.progress_bar);
-        favFab = (FloatingActionButton) findViewById(R.id.favorite_list_item);
+
         //setting up the navigation drawer
         drawerLayout = findViewById(R.id.drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
@@ -197,17 +219,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         movieRV.setLayoutManager(layoutManager);
 
         mAdapter = new MovieAdapter(this, new ArrayList<MovieObject>());
-        mFavoriteAdapter = new FavoriteCursorAdapter(this,null);
         movieRV.setAdapter(mAdapter);
 
         //if is no connection an error message will appear on the device
+
         if (isConnected()) {
-            LoaderManager loaderManager = getLoaderManager();
-            loaderManager.initLoader(MOVIE_LOADER_ID, null, movieLoader);
+            getLoaderManager().initLoader(MOVIE_LOADER_ID, null, movieLoader);
         } else {
             noConnectionView.setVisibility(View.VISIBLE);
         }
-        getLoaderManager().initLoader(FAVORITE_LOADER,null,favoritesLoader);
     }
 
     /**
@@ -227,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView selectedIconPopularity = findViewById(R.id.popularity_list_movie_title);
         TextView selectedIconRated = findViewById(R.id.rated_list_movie_title);
         TextView selectedIconFavorite = findViewById(R.id.favorite_list_movie_title);
+        getLoaderManager().initLoader(FAVORITE_LOADER, null, favoritesLoader);
 
         int id = item.getItemId();
         if (id == R.id.most_popular) {
@@ -253,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             selectedIconRated.setVisibility(View.GONE);
             selectedIconFavorite.setVisibility(View.VISIBLE);
             drawerLayout.closeDrawer(GravityCompat.START);
-            movieRV.setAdapter(mFavoriteAdapter);
+            movieRV.setAdapter(mAdapter);
             getLoaderManager().restartLoader(FAVORITE_LOADER, null, favoritesLoader);
 
         }

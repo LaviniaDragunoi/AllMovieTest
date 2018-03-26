@@ -1,13 +1,10 @@
 package com.example.user.allmovietest.movies;
 
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.renderscript.Sampler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.RecyclerView;
@@ -22,13 +19,11 @@ import android.widget.Toast;
 import com.example.user.allmovietest.DetailActivity;
 import com.example.user.allmovietest.R;
 import com.example.user.allmovietest.data.FavoriteContract;
-import com.example.user.allmovietest.data.FavoriteCursorAdapter;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import static android.provider.BaseColumns._ID;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.CONTENT_URI;
 import static java.lang.String.valueOf;
 
@@ -41,6 +36,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private static final String LOG_TAG = MovieAdapter.class.getName();
     //the list of movie that will fill the recyclerView;
     private List<MovieObject> moviesList;
+    private Cursor mCursor;
     private Context mContext;
 
     /**
@@ -137,22 +133,22 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 mContext.startActivity(intent);
             }
         });
-        final int hasDbId = ManageFavoritesUtils.getFavoriteDbId(mContext,movieItem.getMovieId());
+
         favoriteView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //get the Uri DB of the movieItem if was found in the DB
-                if(hasDbId == -1){
+                if(ManageFavoritesUtils.isAmongFavorites(mContext, movieItem.getMovieId())){
                     favoriteView.setImageResource(R.drawable.ic_favorite);
-                    ManageFavoritesUtils.removeFromFavorite(mContext,
-                            ManageFavoritesUtils.getFavoriteDbId(mContext,movieItem.getMovieId()));
-                    Toast.makeText(mContext,mContext.getString(R.string.deleted), Toast.LENGTH_LONG).show();
+                    int moviesRemoved = ManageFavoritesUtils.removeFromFavorite(mContext,movieItem.getMovieId());
+                    if(moviesRemoved > 0) Toast.makeText(mContext,
+                            mContext.getString(R.string.deleted), Toast.LENGTH_SHORT).show();
                 }else {
                     favoriteView.setImageResource(R.drawable.ic_favorite_red);
                     ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(movieItem);
                     Uri uri = mContext.getContentResolver().insert(CONTENT_URI,cv);
                     if(uri != null)
-                        Toast.makeText(mContext,mContext.getString(R.string.added), Toast.LENGTH_LONG).show();
+                        Toast.makeText(mContext,mContext.getString(R.string.added), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -206,6 +202,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             moviePoster = itemView.findViewById(R.id.movie_image_List);
             errorMessage = itemView.findViewById(R.id.error_loading_movie_list);
             favoriteView = itemView.findViewById(R.id.favorite_list_item);
+        }
+    }
+    public void swapCursor(Cursor newCursor){
+        if(mCursor != null) mCursor.close();
+        mCursor = newCursor;
+        if(newCursor != null){
+            this.notifyDataSetChanged();
         }
     }
 }

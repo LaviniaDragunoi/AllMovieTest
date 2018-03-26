@@ -22,5 +22,13 @@
         android:text="@string/error_loading"
         android:layout_gravity="center"
         android:visibility="gone"/>
+    <TextView
+        android:id="@+id/no_favorite_list"
+        style="@style/TextStyleTitles"
+        android:text="@string/no_favorite_movies"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:drawableTop="@drawable/ic_favorite"
+        android:drawablePadding="@dimen/ten_dp"/>
 
 </FrameLayout>

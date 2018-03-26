@@ -1,5 +1,6 @@
 package com.example.user.allmovietest.data;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,6 +39,7 @@ public class ManageFavoritesUtils extends ContentResolver {
         cv.put(FavoriteContract.FavoriteEntry.COLUMN_RATING, favoriteMovie.getRating());
         cv.put(FavoriteContract.FavoriteEntry.COLUMN_RELEASE_DATE, favoriteMovie.getReleaseDate());
         cv.put(FavoriteContract.FavoriteEntry.COLUMN_VOUT_COUNT, favoriteMovie.getVoteCount());
+        cv.put(FavoriteContract.FavoriteEntry.COLUMN_MOVIE_ID, favoriteMovie.getMovieId());
         return cv;
     }
 
@@ -61,22 +63,22 @@ public class ManageFavoritesUtils extends ContentResolver {
 
 
 
-   public static void removeFromFavorite(Context context,int id){
+   public static int removeFromFavorite(Context context,int movieId){
        Uri uri = FavoriteContract.FavoriteEntry.CONTENT_URI;
-       Uri removeUri = uri.buildUpon().appendPath(valueOf(id)).build();
-       context.getContentResolver().delete(uri, null, null);
+       Uri removeUri = uri.buildUpon().appendPath(valueOf(movieId)).build();
+       return context.getContentResolver().delete(removeUri, null, null);
     }
 
-    public static int getFavoriteDbId (Context context, int movieId){
-        String selection = FavoriteContract.FavoriteEntry.COLUMN_MOVIE_ID + " = ?";
-        String[] selectionArgs = {""};
-        selectionArgs[0] = valueOf(movieId);
-        Cursor cursor = context.getContentResolver().query(CONTENT_URI,
-                null,
-                selection,
-                selectionArgs,
-                null);
-        return cursor.getColumnIndex(FavoriteContract.FavoriteEntry._ID);
+    public static boolean isDbEmpty(Context context, SQLiteDatabase db){
+       @SuppressLint("Recycle") Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+       boolean hasRaw;
+       if(cursor.moveToFirst()){
+           hasRaw = true;
+       }else {
+           hasRaw = false;
+       }
+       return hasRaw;
     }
+
 
 }
