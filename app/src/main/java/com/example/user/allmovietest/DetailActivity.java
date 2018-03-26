@@ -3,10 +3,10 @@ package com.example.user.allmovietest;
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
@@ -17,13 +17,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.user.allmovietest.data.FavoriteDBHelper;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.example.user.allmovietest.movies.MovieAdapter;
 import com.example.user.allmovietest.movies.MovieObject;
@@ -59,35 +58,17 @@ public class DetailActivity extends AppCompatActivity {
     ProgressBar progressBarReview, progressBarTrailer;
     TrailerObject firstTrailer;
     FloatingActionButton favoriteViewDetailsContent;
-    boolean isCheckedAsFavorite;
     private static final String REVIEW_URL_PATH = "reviews";
     private static final String VIDEO_URL_PATH = "videos";
+    SQLiteDatabase db;
 
     private final int TRAILER_LOADER = 8;
     private final int REVIEWS_LOADER = 4;
-    private final int FAVORITE_LOADER = 6;
 
     public RecyclerView reviewsRecyclerView, trailerRecyclerView;
 
-    LoaderManager.LoaderCallbacks<Cursor> favoritesLoader = new LoaderManager.LoaderCallbacks<Cursor>() {
-        @Override
-        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            return null;
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-
-        }
-
-        @Override
-        public void onLoaderReset(Loader<Cursor> loader) {
-
-        }
-    };
-
-
-    LoaderManager.LoaderCallbacks<List<TrailerObject>> trailerLoader = new LoaderManager.LoaderCallbacks<List<TrailerObject>>() {
+    LoaderManager.LoaderCallbacks<List<TrailerObject>> trailerLoader = new LoaderManager
+            .LoaderCallbacks<List<TrailerObject>>() {
         @SuppressLint("StaticFieldLeak")
         @Override
         public Loader<List<TrailerObject>> onCreateLoader(int id, final Bundle args) {
@@ -237,20 +218,17 @@ public class DetailActivity extends AppCompatActivity {
         posterMovie = findViewById(R.id.movie_poster_details_view);
 
         Intent intent = getIntent();
-        currentMovie = intent.getParcelableExtra("Movie");
-         isCheckedAsFavorite = intent.getBooleanExtra("IsFavorite", false);
-
-        String moviePosterUrlString = MovieAdapter.buildPosterUrl(currentMovie.getMoviePoster());
-        Picasso.with(this).load(moviePosterUrlString).into(posterMovie);
-        displayMovieUI(currentMovie);
-
-        setTitle(currentMovie.getOriginalTitle());
-
-        favoriteViewDetailsContent = findViewById(R.id.included_fab_details);
-        if(isCheckedAsFavorite){
-         favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite_red);
-        }else favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite);
-
+        String intentName = "";
+        if(intent != null) intentName = valueOf(intent.getComponent());
+        if(intentName.equals("Movie")){
+            currentMovie = intent.getParcelableExtra("Movie");
+        }else if(intentName.equals("FavoriteMovie")){
+            currentMovie = (MovieObject) intent.getSerializableExtra("FavoriteMovie");
+        }
+            String moviePosterUrlString = MovieAdapter.buildPosterUrl(currentMovie.getMoviePoster());
+            Picasso.with(this).load(moviePosterUrlString).into(posterMovie);
+            displayMovieUI(currentMovie);
+            setTitle(currentMovie.getOriginalTitle());
 
     }
 
@@ -274,6 +252,9 @@ public class DetailActivity extends AppCompatActivity {
 
         ratingBar = findViewById(R.id.rating_bar);
         ratingBar.setRating((float) movie.getRating());
+
+        favoriteViewDetailsContent = findViewById(R.id.favorite_details_content);
+
     }
         @Override
         public boolean onCreateOptionsMenu (Menu menu){

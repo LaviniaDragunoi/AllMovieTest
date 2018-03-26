@@ -59,9 +59,13 @@
         app:layout_constraintTop_toBottomOf="@id/rating_bar"
         tools:ignore="MissingConstraints" />
 
-    <include
-        android:id="@+id/included_fab_details"
-        layout="@layout/fab"
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/favorite_details_content"
+        style="@style/WrapWrap"
+        tools:src="@drawable/ic_favorite"
+        android:focusable="true"
+        app:fabCustomSize="@dimen/circle_dimen"
+        app:backgroundTint="@color/transparentColor"
         android:layout_margin="@dimen/five_dp"
         app:layout_constraintEnd_toEndOf="@id/vote_count"
         app:layout_constraintTop_toBottomOf="@id/vote_count"

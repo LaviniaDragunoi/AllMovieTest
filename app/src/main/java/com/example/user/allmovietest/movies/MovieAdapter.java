@@ -4,8 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.renderscript.Sampler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,11 +22,13 @@ import android.widget.Toast;
 import com.example.user.allmovietest.DetailActivity;
 import com.example.user.allmovietest.R;
 import com.example.user.allmovietest.data.FavoriteContract;
+import com.example.user.allmovietest.data.FavoriteCursorAdapter;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import static android.provider.BaseColumns._ID;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.CONTENT_URI;
 import static java.lang.String.valueOf;
 
@@ -37,8 +42,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     //the list of movie that will fill the recyclerView;
     private List<MovieObject> moviesList;
     private Context mContext;
-    private boolean isCheckedAsFavorite;
-
 
     /**
      * MovieAdapter constructor that will take the movieList to display within context
@@ -91,7 +94,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
      * @param position the position of the item within the adapter
      */
     @Override
-    public void onBindViewHolder(final MovieViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final MovieViewHolder holder, final int position) {
         //get the position
         final MovieObject movieItem = moviesList.get(position);
 
@@ -103,8 +106,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         final String ratingString = valueOf(movieItem.getRating());
         final FloatingActionButton favoriteView = holder.favoriteView;
         favoriteView.setVisibility(View.INVISIBLE);
-        favoriteView.setImageResource(R.drawable.ic_favorite);
-        isCheckedAsFavorite = false;
+        //get the Uri DB of the movieItem if was found in the DB
+        if(ManageFavoritesUtils.isAmongFavorites(mContext, movieItem.getMovieId())){
+        favoriteView.setImageResource(R.drawable.ic_favorite_red);
+        }else {
+            favoriteView.setImageResource(R.drawable.ic_favorite);
+        }
 
         Picasso.with(mContext).load(moviePosterUrlString).into(moviePosterImageView,
                 new com.squareup.picasso.Callback() {
@@ -122,40 +129,33 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             }
         });
 
-        favoriteView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!isCheckedAsFavorite){
-                    favoriteView.setImageResource(R.drawable.ic_favorite_red);
-                    isCheckedAsFavorite = true;
-                    ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(movieItem);
-                    Uri uri = mContext.getContentResolver().insert(CONTENT_URI,cv);
-                    if(uri != null)
-                        Toast.makeText(mContext,mContext.getString(R.string.added),Toast.LENGTH_SHORT).show();
-
-                }else {
-                    favoriteView.setImageResource(R.drawable.ic_favorite);
-                    isCheckedAsFavorite = false;
-                    Uri uri = FavoriteContract.FavoriteEntry.CONTENT_URI;
-                    uri = uri.buildUpon().appendPath(valueOf(position)).build();
-
-                    int movieDeleted =  mContext.getContentResolver().delete(uri,null, null);
-                    if(movieDeleted != 0)
-                        Toast.makeText(mContext,mContext.getString(R.string.deleted),Toast.LENGTH_SHORT).show();
-
-                }
-            }
-        });
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, DetailActivity.class);
                 intent.putExtra("Movie", movieItem);
-                intent.putExtra("IsFavorite", isCheckedAsFavorite);
                 mContext.startActivity(intent);
             }
         });
-
+        final int hasDbId = ManageFavoritesUtils.getFavoriteDbId(mContext,movieItem.getMovieId());
+        favoriteView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //get the Uri DB of the movieItem if was found in the DB
+                if(hasDbId == -1){
+                    favoriteView.setImageResource(R.drawable.ic_favorite);
+                    ManageFavoritesUtils.removeFromFavorite(mContext,
+                            ManageFavoritesUtils.getFavoriteDbId(mContext,movieItem.getMovieId()));
+                    Toast.makeText(mContext,mContext.getString(R.string.deleted), Toast.LENGTH_LONG).show();
+                }else {
+                    favoriteView.setImageResource(R.drawable.ic_favorite_red);
+                    ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(movieItem);
+                    Uri uri = mContext.getContentResolver().insert(CONTENT_URI,cv);
+                    if(uri != null)
+                        Toast.makeText(mContext,mContext.getString(R.string.added), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
     }
 
@@ -205,7 +205,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             ratingValue = itemView.findViewById(R.id.rating_value_tv);
             moviePoster = itemView.findViewById(R.id.movie_image_List);
             errorMessage = itemView.findViewById(R.id.error_loading_movie_list);
-            favoriteView = itemView.findViewById(R.id.included_fab_main);
+            favoriteView = itemView.findViewById(R.id.favorite_list_item);
         }
     }
 }

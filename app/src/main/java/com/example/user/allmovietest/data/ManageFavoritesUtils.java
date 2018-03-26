@@ -16,16 +16,19 @@ import com.example.user.allmovietest.movies.MovieObject;
 import java.util.List;
 
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.CONTENT_URI;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.TABLE_NAME;
+import static java.lang.String.valueOf;
+import static java.security.AccessController.getContext;
 
 /**
  * Created by Lavinia Dragunoi on 3/20/2018.
  */
 
-public class ManageFavoritesUtils {
+public class ManageFavoritesUtils extends ContentResolver {
 
-    public Context mContext;
-    Cursor mCursor;
-
+    public ManageFavoritesUtils(Context context) {
+        super(context);
+    }
 
     public static ContentValues addMovieToFavoritesList(MovieObject favoriteMovie){
 
@@ -38,5 +41,42 @@ public class ManageFavoritesUtils {
         return cv;
     }
 
+    public static boolean isAmongFavorites(Context context, int movieId){
+        String selection = FavoriteContract.FavoriteEntry.COLUMN_MOVIE_ID + " = ?";
+        String[] selectionArgs = {""};
+        boolean isFavorite = false;
+        selectionArgs[0] = valueOf(movieId);
+        Cursor cursor = context.getContentResolver().query(CONTENT_URI,
+                null,
+                selection,
+                selectionArgs,
+                null);
+        if(cursor.getCount() > 0) {
+            isFavorite = true;
+        }else {
+            isFavorite = false;
+        }
+        return isFavorite;
+        }
+
+
+
+   public static void removeFromFavorite(Context context,int id){
+       Uri uri = FavoriteContract.FavoriteEntry.CONTENT_URI;
+       Uri removeUri = uri.buildUpon().appendPath(valueOf(id)).build();
+       context.getContentResolver().delete(uri, null, null);
+    }
+
+    public static int getFavoriteDbId (Context context, int movieId){
+        String selection = FavoriteContract.FavoriteEntry.COLUMN_MOVIE_ID + " = ?";
+        String[] selectionArgs = {""};
+        selectionArgs[0] = valueOf(movieId);
+        Cursor cursor = context.getContentResolver().query(CONTENT_URI,
+                null,
+                selection,
+                selectionArgs,
+                null);
+        return cursor.getColumnIndex(FavoriteContract.FavoriteEntry._ID);
+    }
 
 }

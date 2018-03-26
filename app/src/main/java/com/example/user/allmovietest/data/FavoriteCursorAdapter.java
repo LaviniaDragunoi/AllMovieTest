@@ -3,6 +3,7 @@ package com.example.user.allmovietest.data;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -19,13 +20,16 @@ import com.example.user.allmovietest.R;
 import com.example.user.allmovietest.movies.MovieAdapter;
 import com.squareup.picasso.Picasso;
 
+import java.io.Serializable;
+
 import static java.lang.String.valueOf;
 
 /**
  * Created by Lavinia Dragunoi on 3/21/2018.
  */
 
-public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAdapter.FavoriteViewHolder>{
+public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAdapter
+        .FavoriteViewHolder> implements Parcelable{
     private static final String LOG_TAG = FavoriteCursorAdapter.class.getName();
     private Context mContext;
     private Cursor mCursor;
@@ -35,11 +39,27 @@ public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAd
         this.mCursor = cursor;
     }
 
+    protected FavoriteCursorAdapter(Parcel in) {
+    }
+
+    public static final Creator<FavoriteCursorAdapter> CREATOR = new Creator<FavoriteCursorAdapter>() {
+        @Override
+        public FavoriteCursorAdapter createFromParcel(Parcel in) {
+            return new FavoriteCursorAdapter(in);
+        }
+
+        @Override
+        public FavoriteCursorAdapter[] newArray(int size) {
+            return new FavoriteCursorAdapter[size];
+        }
+    };
+
     @NonNull
     @Override
     public FavoriteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(mContext);
         View view = inflater.inflate(R.layout.list_item, parent, false);
+        view.setBackgroundColor(R.drawable.color_background);
         return new FavoriteViewHolder(view);
     }
 
@@ -55,7 +75,7 @@ public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAd
         final TextView ratingValueTextView = holder.ratingValue;
         ratingValueTextView.setVisibility(View.INVISIBLE);
 
-        final String ratingString = valueOf(mCursor.getInt(mCursor.getColumnIndex(
+        final String ratingString = valueOf(mCursor.getDouble(mCursor.getColumnIndex(
                 FavoriteContract.FavoriteEntry.COLUMN_RATING)));
 
         final FloatingActionButton favoriteView = holder.favoriteView;
@@ -68,6 +88,7 @@ public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAd
                         ratingValueTextView.setText(ratingString);
                         ratingValueTextView.setVisibility(View.VISIBLE);
                         favoriteView.setVisibility(View.VISIBLE);
+                        favoriteView.setImageResource(R.drawable.ic_favorite_red);
                     }
 
                     @Override
@@ -83,7 +104,7 @@ public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAd
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, DetailActivity.class);
-                intent.putExtra("Movie", (Parcelable) mCursor);
+                intent.putExtra("FavoriteMovie", mCursor.getExtras());
                 mContext.startActivity(intent);
             }
         });
@@ -93,6 +114,15 @@ public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAd
     @Override
     public int getItemCount() {
         return mCursor.getCount();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
     }
 
     class FavoriteViewHolder extends RecyclerView.ViewHolder{
@@ -106,7 +136,7 @@ public class FavoriteCursorAdapter extends RecyclerView.Adapter<FavoriteCursorAd
             //Find Views that will display each item
             ratingValue = itemView.findViewById(R.id.rating_value_tv);
             moviePoster = itemView.findViewById(R.id.movie_image_List);
-            favoriteView = itemView.findViewById(R.id.included_fab_main);
+            favoriteView = itemView.findViewById(R.id.favorite_list_item);
         }
     }
 
