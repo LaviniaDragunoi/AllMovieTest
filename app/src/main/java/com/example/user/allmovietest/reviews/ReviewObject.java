@@ -6,13 +6,7 @@ import android.os.Parcelable;
 /**
  * Created by LaviniaDragunoi on 3/15/2018.
  */
-
-public class ReviewObject implements Parcelable{
-
-    protected ReviewObject(Parcel in) {
-        mAuthor = in.readString();
-        mContent = in.readString();
-    }
+public class ReviewObject implements Parcelable {
 
     public static final Creator<ReviewObject> CREATOR = new Creator<ReviewObject>() {
         @Override
@@ -26,13 +20,16 @@ public class ReviewObject implements Parcelable{
         }
     };
 
-
     //This variable stores the name of the author of the review
     private String mAuthor;
     //This variable stores the content of the review
     private String mContent;
+    protected ReviewObject(Parcel in) {
+        mAuthor = in.readString();
+        mContent = in.readString();
+    }
 
-    public ReviewObject(String author, String content){
+    public ReviewObject(String author, String content) {
         mAuthor = author;
         mContent = content;
     }

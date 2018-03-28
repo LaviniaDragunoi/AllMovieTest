@@ -22,5 +22,6 @@
     <string name="no_trailers"><b>No trailers available.</b></string>
     <string name="added">You added movie in the favorite movie list.</string>
     <string name="deleted">You removed movie from favorite movie list.</string>
+    <string name="no_fav_deleted">The movie is still in the favorite list.</string>
     <string name="no_favorite_movies">No favorite movie selected</string>
 </resources>

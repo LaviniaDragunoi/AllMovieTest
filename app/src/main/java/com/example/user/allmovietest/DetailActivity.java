@@ -4,11 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
@@ -25,7 +22,6 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.user.allmovietest.data.FavoriteDBHelper;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.example.user.allmovietest.movies.MovieAdapter;
 import com.example.user.allmovietest.movies.MovieObject;
@@ -42,9 +38,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import okhttp3.Response;
 
+import static android.content.Intent.makeRestartActivityTask;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.CONTENT_URI;
 import static java.lang.String.valueOf;
 
@@ -53,6 +51,11 @@ import static java.lang.String.valueOf;
  */
 public class DetailActivity extends AppCompatActivity {
 
+    private static final String REVIEW_URL_PATH = "reviews";
+    private static final String VIDEO_URL_PATH = "videos";
+    private final int TRAILER_LOADER = 8;
+    private final int REVIEWS_LOADER = 4;
+    public RecyclerView reviewsRecyclerView, trailerRecyclerView;
     TextView releaseDateTV, ratingTV, overviewTV, voteCountTV, noReviewTV, noTrailerTV;
     ImageView posterMovie;
     RatingBar ratingBar;
@@ -62,16 +65,8 @@ public class DetailActivity extends AppCompatActivity {
     ProgressBar progressBarReview, progressBarTrailer;
     TrailerObject firstTrailer;
     FloatingActionButton favoriteViewDetailsContent;
-    private static final String REVIEW_URL_PATH = "reviews";
-    private static final String VIDEO_URL_PATH = "videos";
-    SQLiteDatabase db;
-    Context mContext;
 
-    private final int TRAILER_LOADER = 8;
-    private final int REVIEWS_LOADER = 4;
-
-    public RecyclerView reviewsRecyclerView, trailerRecyclerView;
-
+    //The loader that will help to load the trailers in the detail_activity.xml layout
     LoaderManager.LoaderCallbacks<List<TrailerObject>> trailerLoader = new LoaderManager
             .LoaderCallbacks<List<TrailerObject>>() {
         @SuppressLint("StaticFieldLeak")
@@ -88,14 +83,13 @@ public class DetailActivity extends AppCompatActivity {
                     } else {
                         forceLoad();
                     }
-
                 }
 
                 @Override
                 public List<TrailerObject> loadInBackground() {
                     List<TrailerObject> trailerObjectList = new ArrayList<>();
                     try {
-                        URL requestUrl = JsonUtils.getUrlResponseById(valueOf(currentMovie.getMovieId()),VIDEO_URL_PATH);
+                        URL requestUrl = JsonUtils.getUrlResponseById(valueOf(currentMovie.getMovieId()), VIDEO_URL_PATH);
                         Response response = JsonUtils.fetchData(requestUrl.toString());
                         trailerObjectList = JsonUtils.parseTrailerJson(response.body().string());
 
@@ -105,6 +99,7 @@ public class DetailActivity extends AppCompatActivity {
                     }
                     return trailerObjectList;
                 }
+
                 @Override
                 public void deliverResult(List<TrailerObject> data) {
                     trailerObjectList = data;
@@ -113,14 +108,11 @@ public class DetailActivity extends AppCompatActivity {
             };
         }
 
-
         @Override
         public void onLoadFinished(Loader<List<TrailerObject>> loader, List<TrailerObject> trailerObjectList) {
             progressBarTrailer.setVisibility(View.GONE);
             mTrailerAdapter.addAll(trailerObjectList);
-            firstTrailer = trailerObjectList.get(0);
-            if(trailerObjectList.isEmpty()) noTrailerTV.setVisibility(View.VISIBLE);
-
+            if (trailerObjectList.isEmpty()) noTrailerTV.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -128,7 +120,7 @@ public class DetailActivity extends AppCompatActivity {
             mTrailerAdapter.clearAll();
         }
     };
-
+    //The loader that will help to load the reviews in the detail_activity.xml layout
     LoaderManager.LoaderCallbacks<List<ReviewObject>> reviewLoader = new LoaderManager.LoaderCallbacks<List<ReviewObject>>() {
         @SuppressLint("StaticFieldLeak")
         @Override
@@ -144,23 +136,22 @@ public class DetailActivity extends AppCompatActivity {
                     } else {
                         forceLoad();
                     }
-
                 }
 
                 @Override
                 public List<ReviewObject> loadInBackground() {
                     List<ReviewObject> reviewObjectList = new ArrayList<>();
                     try {
-                        URL requestUrl = JsonUtils.getUrlResponseById(valueOf(currentMovie.getMovieId()),REVIEW_URL_PATH);
+                        URL requestUrl = JsonUtils.getUrlResponseById(valueOf(currentMovie.getMovieId()), REVIEW_URL_PATH);
                         Response response = JsonUtils.fetchData(requestUrl.toString());
                         reviewObjectList = JsonUtils.parseReviewJson(response.body().string());
 
                     } catch (IOException e) {
                         e.printStackTrace();
-
                     }
                     return reviewObjectList;
                 }
+
                 @Override
                 public void deliverResult(List<ReviewObject> data) {
                     reviewObjectList = data;
@@ -169,13 +160,11 @@ public class DetailActivity extends AppCompatActivity {
             };
         }
 
-
         @Override
         public void onLoadFinished(Loader<List<ReviewObject>> loader, List<ReviewObject> reviewObjectList) {
             progressBarReview.setVisibility(View.GONE);
             mReviewAdapter.addAll(reviewObjectList);
-            if(reviewObjectList.isEmpty()) noReviewTV.setVisibility(View.VISIBLE);
-
+            if (reviewObjectList.isEmpty()) noReviewTV.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -183,14 +172,14 @@ public class DetailActivity extends AppCompatActivity {
             mReviewAdapter.clearAll();
         }
     };
+    private Intent intent;
 
-
-
-
+    @SuppressLint("NewApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         reviewsRecyclerView = findViewById(R.id.reviews_recycler);
         RecyclerView.LayoutManager layoutManagerReviews = new
@@ -214,57 +203,55 @@ public class DetailActivity extends AppCompatActivity {
 
         progressBarReview = findViewById(R.id.progress_bar_reviews);
         noReviewTV = findViewById(R.id.no_review_tv);
-
         progressBarTrailer = findViewById(R.id.progress_bar_trailers);
         noTrailerTV = findViewById(R.id.no_trailer_tv);
-
         trailerRecyclerView = findViewById(R.id.trailer_recycler);
-
         posterMovie = findViewById(R.id.movie_poster_details_view);
 
-        Intent intent = getIntent();
-
+        intent = getIntent();
         currentMovie = intent.getParcelableExtra("Movie");
 
-            String moviePosterUrlString = MovieAdapter.buildPosterUrl(currentMovie.getMoviePoster());
-            Picasso.with(this).load(moviePosterUrlString).into(posterMovie);
-            displayMovieUI(currentMovie);
-            setTitle(currentMovie.getOriginalTitle());
+        String moviePosterUrlString = MovieAdapter.buildPosterUrl(currentMovie.getMoviePoster());
+        Picasso.with(this).load(moviePosterUrlString).into(posterMovie);
+        displayMovieUI(currentMovie);
+        setTitle(currentMovie.getOriginalTitle());
 
+        //favorite button that will show if a movie is in the favorite list or not
         favoriteViewDetailsContent = findViewById(R.id.favorite_details_content);
-        if(ManageFavoritesUtils.isAmongFavorites(this, currentMovie.getMovieId())){
+        if (ManageFavoritesUtils.isAmongFavorites(this, currentMovie.getMovieId())) {
             favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite_red);
-        }else {
+        } else {
             favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite);
         }
+        //onClickListener pe favorite Button that will help to put or remove a movie in/from the
+        //favorite movie list
         favoriteViewDetailsContent.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("NewApi")
             @Override
             public void onClick(View v) {
-                //get the Uri DB of the movieItem if was found in the DB
-                if(ManageFavoritesUtils.isAmongFavorites(DetailActivity.this,
-                        currentMovie.getMovieId())){
+                if (ManageFavoritesUtils.isAmongFavorites(DetailActivity.this,
+                        currentMovie.getMovieId())) {
                     favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite);
                     int moviesRemoved = ManageFavoritesUtils.removeFromFavorite(
-                            DetailActivity.this,currentMovie.getMovieId());
-                    if(moviesRemoved > 0) Toast.makeText(DetailActivity.this,
+                            DetailActivity.this, currentMovie.getMovieId());
+                    if (moviesRemoved > 0) Toast.makeText(DetailActivity.this,
                             getString(R.string.deleted), Toast.LENGTH_SHORT).show();
-
-                }else {
+                } else {
                     favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite_red);
                     ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(currentMovie);
-                    Uri uri = getContentResolver().insert(CONTENT_URI,cv);
-                    if(uri != null)
-                        Toast.makeText(DetailActivity.this,getString(R.string.added),
+                    Uri uri = getContentResolver().insert(CONTENT_URI, cv);
+                    if (uri != null)
+                        Toast.makeText(DetailActivity.this, getString(R.string.added),
                                 Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
     }
 
     /**
      * This method takes a movieObject and extracts from it each info needed to be displayed
      * in the activity_detail.xml layout
+     *
      * @param movie the MovieObject that contains all information needed
      */
     private void displayMovieUI(final MovieObject movie) {
@@ -283,25 +270,43 @@ public class DetailActivity extends AppCompatActivity {
         ratingBar = findViewById(R.id.rating_bar);
         ratingBar.setRating((float) movie.getRating());
     }
-        @Override
-        public boolean onCreateOptionsMenu (Menu menu){
-            getMenuInflater().inflate(R.menu.share_menu, menu);
-            return true;
-        }
 
-        @Override
-        public boolean onOptionsItemSelected (MenuItem item){
-            int id = item.getItemId();
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.share_menu, menu);
+        return true;
+    }
 
-            if (id == R.id.share_action) {
+    @SuppressLint("NewApi")
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case (R.id.share_action):
                 Intent shareIntent = ShareCompat.IntentBuilder
                         .from(this)
                         .setType("text/plain")
                         .setChooserTitle("Share trailer")
                         .setText(firstTrailer.getSiteTrailer())
                         .getIntent();
-                if(shareIntent.resolveActivity(getPackageManager()) != null) startActivity(shareIntent);
+                if (shareIntent.resolveActivity(getPackageManager()) != null)
+                    startActivity(shareIntent);
                 return true;
-            } else return super.onOptionsItemSelected(item);
+            case android.R.id.home:
+                startActivity(getParentActivityIntent());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
+
+    /**
+     * When the back button is clicked this method will sent on the main Activity layout
+     */
+    @SuppressLint("NewApi")
+    @Override
+    public void onBackPressed() {
+        startActivity(getParentActivityIntent());
+        super.onBackPressed();
+    }
+}

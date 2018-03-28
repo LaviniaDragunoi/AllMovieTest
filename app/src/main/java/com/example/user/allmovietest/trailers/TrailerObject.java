@@ -7,18 +7,29 @@ import android.os.Parcelable;
  * Created by LAvinia Dragunoi on 3/14/2018.
  */
 
-public class TrailerObject implements Parcelable{
+public class TrailerObject implements Parcelable {
 
+    public static final Creator<TrailerObject> CREATOR = new Creator<TrailerObject>() {
+        @Override
+        public TrailerObject createFromParcel(Parcel in) {
+            return new TrailerObject(in);
+        }
+
+        @Override
+        public TrailerObject[] newArray(int size) {
+            return new TrailerObject[size];
+        }
+    };
+    //This is the YouTube BASE for getting the trailer site
+    private static final String BASE_YOUTUBE = "https://www.youtube.com/watch?v=";
     //This variable stores the key of the trailer
     private String mKeyTrailer;
     //This variable stores the name of the trailer
     private String mNameTrailer;
     //This variable stores the YouTube site for each trailer
     private String mSiteTrailer;
-    //This is the YouTube BASE for getting the trailer site
-    private static final String BASE_YOUTUBE = "https://www.youtube.com/watch?v=";
 
-    public TrailerObject(String keyTrailer, String nameTrailer){
+    public TrailerObject(String keyTrailer, String nameTrailer) {
         mKeyTrailer = keyTrailer;
         mNameTrailer = nameTrailer;
     }
@@ -40,18 +51,6 @@ public class TrailerObject implements Parcelable{
     public int describeContents() {
         return 0;
     }
-
-    public static final Creator<TrailerObject> CREATOR = new Creator<TrailerObject>() {
-        @Override
-        public TrailerObject createFromParcel(Parcel in) {
-            return new TrailerObject(in);
-        }
-
-        @Override
-        public TrailerObject[] newArray(int size) {
-            return new TrailerObject[size];
-        }
-    };
 
     public String getKeyTrailer() {
         return mKeyTrailer;

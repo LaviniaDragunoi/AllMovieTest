@@ -15,8 +15,8 @@
         style="@style/WWrapHMatch"
         android:layout_gravity="start"
         android:background="@color/soft"
-       app:itemIconTint="@color/deepGold"
         app:headerLayout="@layout/nav_drawer_header"
+        app:itemIconTint="@color/deepGold"
         app:menu="@menu/drawer_menu_view" />
 
     <LinearLayout
@@ -38,6 +38,7 @@
             android:text="@string/no_connection"
             android:textColor="@color/colorPrimary"
             android:textStyle="bold" />
+
     </LinearLayout>
 
 </android.support.v4.widget.DrawerLayout>

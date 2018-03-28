@@ -18,13 +18,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import static java.lang.String.valueOf;
-
 /**
  * This class helps to manage all the Json's String changes, from the moment that is formed the
  * request until all the data are parsed and fetched from the Json String.
  */
-
 public class JsonUtils {
 
     private static final String LOG_TAG = JsonUtils.class.getName();
@@ -44,21 +41,16 @@ public class JsonUtils {
     private static final String TRAILER_KEY = "key";
     private static final String TRAILER_NAME = "name";
 
-
-
     //Constants for creating the URL
     private static final String BASE_URL
             = "https://api.themoviedb.org/3/movie";
-
     private static final String PARAM_KEY = "api_key";
     private static final String API_KEY = "your key";
 
-
-
     /**
-     * This method will create the URL that will be send in the makeHttpRequest method
+     * This method will create the URL that will be send in the fetchData method
      *
-     * @param selection is the parameter that will be put from the preferences
+     * @param selection is the parameter that will be put to sortBy user's preferences
      * @return the URL concatenated in this method
      */
     public static URL getUrlResponse(String selection) throws IOException {
@@ -72,6 +64,13 @@ public class JsonUtils {
 
     }
 
+    /**
+     * This method will create the URL for each movie Id and it will concatenated with video or
+     * reviews that will be send in the fetchData method
+     *
+     * @param selection is the parameter that will be put(video or reviews)
+     * @return the URL concatenated in this method
+     */
     public static URL getUrlResponseById(String id, String selection) throws IOException {
 
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
@@ -85,10 +84,11 @@ public class JsonUtils {
     }
 
     /**
-     * This method will parse the Json String received from the makeHttpRequest method,
+     * This method will parse the Json String received from the fetchData method,
      * that has all movie's info.
      *
-     * @param json is the string received from the makeHttpRequest
+     * @param json is the string received from the fetchData that was an response converted
+     *             in a string
      * @return a MovieObject list that has all needed param that will be used to populate the UI
      * later in the main layout.
      */
@@ -122,7 +122,7 @@ public class JsonUtils {
                 int movieId = movieJsonObject.getInt(MOVIE_ID);
 
                 moviesList.add(new MovieObject(originalTitle, moviePoster, overview, rating,
-                        popularity, releaseDate, voteCount,movieId));
+                        popularity, releaseDate, voteCount, movieId));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -130,12 +130,21 @@ public class JsonUtils {
         return moviesList;
     }
 
-    public static List<ReviewObject> parseReviewJson(String json){
+    /**
+     * This method will parse the Json String received from the fetchData method,
+     * that has all reviews info.
+     *
+     * @param json is the string received from the fetchData that was a response converted
+     *             in a string
+     * @return a ReviewObject list that has all needed param that will be used to populate the UI
+     * later in the detail layout.
+     */
+    public static List<ReviewObject> parseReviewJson(String json) {
         List<ReviewObject> reviewsList = new ArrayList<>();
-        try{
+        try {
             JSONObject rootReviewJsonObject = new JSONObject(json);
             JSONArray rootReviewsArray = rootReviewJsonObject.getJSONArray(ROOT_JSON);
-            for(int i=0; i< rootReviewsArray.length(); i++){
+            for (int i = 0; i < rootReviewsArray.length(); i++) {
                 JSONObject reviewsJsonObject = rootReviewsArray.getJSONObject(i);
                 String reviewsAuthor = reviewsJsonObject.getString(REVIEW_AUTHOR);
                 String reviewsContent = reviewsJsonObject.getString(REVIEW_CONTENT);
@@ -147,12 +156,21 @@ public class JsonUtils {
         return reviewsList;
     }
 
-    public static List<TrailerObject> parseTrailerJson(String json){
+    /**
+     * This method will parse the Json String received from the fetchData method,
+     * that has all trailer's info.
+     *
+     * @param json is the string received from the fetchData that was a response converted
+     *             in a string
+     * @return a TrailerObject list that has all needed param that will be used to populate the UI
+     * later in the detail layout.
+     */
+    public static List<TrailerObject> parseTrailerJson(String json) {
         List<TrailerObject> trailersList = new ArrayList<>();
-        try{
+        try {
             JSONObject rootTrailerJsonObject = new JSONObject(json);
             JSONArray rootTrailersArray = rootTrailerJsonObject.getJSONArray(ROOT_JSON);
-            for(int i=0; i< rootTrailersArray.length(); i++){
+            for (int i = 0; i < rootTrailersArray.length(); i++) {
                 JSONObject trailersJsonObject = rootTrailersArray.getJSONObject(i);
 
                 String trailerKey = trailersJsonObject.getString(TRAILER_KEY);
@@ -165,16 +183,15 @@ public class JsonUtils {
         return trailersList;
     }
 
-
     /**
      * This method helps to fetch data
      *
      * @param requestUrl
      * @return
-      */
+     */
     public static Response fetchData(String requestUrl) throws IOException {
 
-        OkHttpClient client =new OkHttpClient();
+        OkHttpClient client = new OkHttpClient();
 
         Request request = new Request.Builder()
                 .url(requestUrl)
@@ -182,7 +199,7 @@ public class JsonUtils {
 
         Response response = null;
         try {
-             response = client.newCall(request).execute();
+            response = client.newCall(request).execute();
         } catch (IOException e) {
             e.printStackTrace();
         }

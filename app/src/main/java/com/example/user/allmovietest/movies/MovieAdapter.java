@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.example.user.allmovietest.DetailActivity;
 import com.example.user.allmovietest.R;
-import com.example.user.allmovietest.data.FavoriteContract;
 import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.squareup.picasso.Picasso;
 
@@ -28,10 +27,10 @@ import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.
 import static java.lang.String.valueOf;
 
 /**
- * Created by Lavinia Dragunoi on 2/20/2018. The MovieAdapter that will set up the recyclerView and
- * will help to populate the layouts
+ * Created by Lavinia Dragunoi on 2/20/2018.
+ * The MovieAdapter will set up the recyclerView and
+ * will help to populate the layouts by popularity, top_rated or favorite movie list
  */
-
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private static final String LOG_TAG = MovieAdapter.class.getName();
     //the list of movie that will fill the recyclerView;
@@ -91,9 +90,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
      */
     @Override
     public void onBindViewHolder(@NonNull final MovieViewHolder holder, final int position) {
+
         //get the position
         final MovieObject movieItem = moviesList.get(position);
 
+        //get the holder that should be updated for each item detail
         final ImageView moviePosterImageView = holder.moviePoster;
         String moviePosterUrlString = buildPosterUrl(movieItem.getMoviePoster());
         final TextView errorLoadMessage = holder.errorMessage;
@@ -102,29 +103,32 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         final String ratingString = valueOf(movieItem.getRating());
         final FloatingActionButton favoriteView = holder.favoriteView;
         favoriteView.setVisibility(View.INVISIBLE);
-        //get the Uri DB of the movieItem if was found in the DB
-        if(ManageFavoritesUtils.isAmongFavorites(mContext, movieItem.getMovieId())){
-        favoriteView.setImageResource(R.drawable.ic_favorite_red);
-        }else {
+
+        //Check if the movie item is in the favorite Movie list, and if it's so or not
+        // put the proper image
+        if (ManageFavoritesUtils.isAmongFavorites(mContext, movieItem.getMovieId())) {
+            favoriteView.setImageResource(R.drawable.ic_favorite_red);
+        } else {
             favoriteView.setImageResource(R.drawable.ic_favorite);
         }
 
         Picasso.with(mContext).load(moviePosterUrlString).into(moviePosterImageView,
                 new com.squareup.picasso.Callback() {
-            @Override
-            public void onSuccess() {
-                ratingValueTextView.setText(ratingString);
-                ratingValueTextView.setVisibility(View.VISIBLE);
-                favoriteView.setVisibility(View.VISIBLE);
-            }
+                    @Override
+                    public void onSuccess() {
+                        ratingValueTextView.setText(ratingString);
+                        ratingValueTextView.setVisibility(View.VISIBLE);
+                        favoriteView.setVisibility(View.VISIBLE);
+                    }
 
-            @Override
-            public void onError() {
-                Log.e(LOG_TAG, String.valueOf(R.string.error_loading_movie));
-               errorLoadMessage.setVisibility(View.VISIBLE);
-            }
-        });
+                    @Override
+                    public void onError() {
+                        Log.e(LOG_TAG, String.valueOf(R.string.error_loading_movie));
+                        errorLoadMessage.setVisibility(View.VISIBLE);
+                    }
+                });
 
+        //OnclickListener on the itemView to open and send info to the DetailsActivity
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,25 +138,34 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             }
         });
 
+        //OnClickListener on the Fav Button that will put or remove from the fravorite movie list
         favoriteView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //get the Uri DB of the movieItem if was found in the DB
-                if(ManageFavoritesUtils.isAmongFavorites(mContext, movieItem.getMovieId())){
+                //if the movie is already in the favorite movie list it will be removed, otherwise
+                // it will be added in the favorite movie list
+                if (ManageFavoritesUtils.isAmongFavorites(mContext, movieItem.getMovieId())) {
                     favoriteView.setImageResource(R.drawable.ic_favorite);
-                    int moviesRemoved = ManageFavoritesUtils.removeFromFavorite(mContext,movieItem.getMovieId());
-                    if(moviesRemoved > 0) Toast.makeText(mContext,
-                            mContext.getString(R.string.deleted), Toast.LENGTH_SHORT).show();
-                }else {
+                    int moviesRemoved = ManageFavoritesUtils.removeFromFavorite(mContext, movieItem.getMovieId());
+                    if (moviesRemoved == 0) {
+                        Toast.makeText(mContext,
+                                mContext.getString(R.string.no_fav_deleted), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(mContext,
+                                mContext.getString(R.string.deleted), Toast.LENGTH_SHORT).show();
+                        moviesList.remove(position);
+                        notifyItemRemoved(position);
+                        notifyItemChanged(position);
+                    }
+                } else {
                     favoriteView.setImageResource(R.drawable.ic_favorite_red);
                     ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(movieItem);
-                    Uri uri = mContext.getContentResolver().insert(CONTENT_URI,cv);
-                    if(uri != null)
-                        Toast.makeText(mContext,mContext.getString(R.string.added), Toast.LENGTH_SHORT).show();
+                    Uri uri = mContext.getContentResolver().insert(CONTENT_URI, cv);
+                    if (uri != null)
+                        Toast.makeText(mContext, mContext.getString(R.string.added), Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
     }
 
     /**
@@ -188,9 +201,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     class MovieViewHolder extends RecyclerView.ViewHolder {
         //Variables that will help to set the information needed in the RecyclerView that will display
         // the movies list in the activity_main.xml layout.
-        TextView ratingValue;
+        TextView ratingValue, errorMessage;
         ImageView moviePoster;
-        TextView errorMessage;
         FloatingActionButton favoriteView;
 
         //ViewHolder's constructor
@@ -202,13 +214,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             moviePoster = itemView.findViewById(R.id.movie_image_List);
             errorMessage = itemView.findViewById(R.id.error_loading_movie_list);
             favoriteView = itemView.findViewById(R.id.favorite_list_item);
-        }
-    }
-    public void swapCursor(Cursor newCursor){
-        if(mCursor != null) mCursor.close();
-        mCursor = newCursor;
-        if(newCursor != null){
-            this.notifyDataSetChanged();
         }
     }
 }

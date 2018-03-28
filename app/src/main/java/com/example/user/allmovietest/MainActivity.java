@@ -1,6 +1,5 @@
 package com.example.user.allmovietest;
 
-
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
@@ -23,11 +22,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.user.allmovietest.data.FavoriteContract;
 import com.example.user.allmovietest.data.FavoriteDBHelper;
-import com.example.user.allmovietest.data.ManageFavoritesUtils;
 import com.example.user.allmovietest.movies.MovieAdapter;
 import com.example.user.allmovietest.movies.MovieObject;
 import com.example.user.allmovietest.utils.JsonUtils;
@@ -46,7 +43,7 @@ import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_POPULARITY;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_RATING;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_RELEASE_DATE;
-import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_VOUT_COUNT;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_VOTE_COUNT;
 import static java.lang.Integer.valueOf;
 
 /**
@@ -55,23 +52,23 @@ import static java.lang.Integer.valueOf;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final int MOVIE_LOADER_ID = 3;
+    public final int FAVORITE_LOADER = 6;
     public String sortBy = "top_rated";
+    public ProgressBar progressBar;
+    public RecyclerView movieRV;
+    SQLiteDatabase mDb;
     private MovieAdapter mAdapter;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-    public  ProgressBar progressBar;
-    public  RecyclerView movieRV;
     private TextView noFavoriteTextView;
-    public final int FAVORITE_LOADER = 6;
-    SQLiteDatabase mDb;
-
+    //The loader that will help to load the movieList in the main_activity.xml layout
     LoaderManager.LoaderCallbacks<List<MovieObject>> movieLoader = new LoaderManager
             .LoaderCallbacks<List<MovieObject>>() {
 
         @SuppressLint("StaticFieldLeak")
         @Override
         public Loader<List<MovieObject>> onCreateLoader(int id, Bundle args) {
-            return new AsyncTaskLoader<List<MovieObject>>(MainActivity.this){
+            return new AsyncTaskLoader<List<MovieObject>>(MainActivity.this) {
 
                 List<MovieObject> movieObjectList;
 
@@ -84,24 +81,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
 
-                    @Override
+                @Override
                 public List<MovieObject> loadInBackground() {
-                        List<MovieObject> movieObjectList = new ArrayList<>();
-                        URL requestUrl = null;
-                        try {
-                            requestUrl = JsonUtils.getUrlResponse(sortBy);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            Response response = JsonUtils.fetchData(requestUrl.toString());
-                            movieObjectList = JsonUtils.parseMovieJson(response.body().string());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        return movieObjectList;
+                    List<MovieObject> movieObjectList = new ArrayList<>();
+                    URL requestUrl = null;
+                    try {
+                        requestUrl = JsonUtils.getUrlResponse(sortBy);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        Response response = JsonUtils.fetchData(requestUrl.toString());
+                        movieObjectList = JsonUtils.parseMovieJson(response.body().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return movieObjectList;
                 }
+
                 @Override
                 public void deliverResult(List<MovieObject> data) {
                     movieObjectList = data;
@@ -112,7 +109,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public void onLoadFinished(Loader<List<MovieObject>> loader, List<MovieObject> movieObjectList) {
+            noFavoriteTextView.setVisibility(View.GONE);
             progressBar.setVisibility(View.GONE);
+            movieRV.setVisibility(View.VISIBLE);
             mAdapter.addAll(movieObjectList);
         }
 
@@ -120,17 +119,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public void onLoaderReset(Loader<List<MovieObject>> loader) {
             mAdapter.clearAll();
         }
-
     };
 
-   public LoaderManager.LoaderCallbacks<Cursor> favoritesLoader = new LoaderManager.LoaderCallbacks<Cursor>() {
+    //The loader that will help to load the favorite movies in in the main_activity.xml layout
+    public LoaderManager.LoaderCallbacks<Cursor> favoritesLoader = new LoaderManager.LoaderCallbacks<Cursor>() {
         @SuppressLint("StaticFieldLeak")
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
             return new AsyncTaskLoader<Cursor>(MainActivity.this) {
 
                 Cursor mFavoriteData = null;
+
                 @Override
                 protected void onStartLoading() {
                     if (mFavoriteData != null) {
@@ -141,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         forceLoad();
                     }
                 }
+
                 @Override
                 public Cursor loadInBackground() {
                     try {
@@ -149,11 +149,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 null,
                                 null,
                                 FavoriteContract.FavoriteEntry.COLUMN_RATING);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                         return null;
                     }
                 }
+
                 public void deliverResult(Cursor data) {
                     mFavoriteData = data;
                     super.deliverResult(data);
@@ -163,21 +164,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            List<MovieObject> movieObjectList = new ArrayList<>();
-            while (data.moveToNext()) {
-                int movieId = data.getInt(data.getColumnIndex(COLUMN_MOVIE_ID));
-                String moviePoster = data.getString(data.getColumnIndex(COLUMN_MOVIE_POSTER));
-                String overview = data.getString(data.getColumnIndex(COLUMN_OVERVIEW));
-                double rating = data.getDouble(data.getColumnIndex(COLUMN_RATING));
-                String releaseDate = data.getString(data.getColumnIndex(COLUMN_RELEASE_DATE));
-                int voteCount = data.getInt(data.getColumnIndex(COLUMN_VOUT_COUNT));
-                String originalTitle = data.getString(data.getColumnIndex(COLUMN_ORIGINAL_TITLE));
-                double popularity = data.getDouble(data.getColumnIndex(COLUMN_POPULARITY));
-                MovieObject movieObject = new MovieObject(originalTitle, moviePoster,
-                        overview, rating, popularity, releaseDate, voteCount, movieId);
-                movieObjectList.add(movieObject);
-                mAdapter.addAll(movieObjectList);
-
+            if (data.getCount() == 0) {
+                noFavoriteTextView.setVisibility(View.VISIBLE);
+                movieRV.setVisibility(View.INVISIBLE);
+            } else {
+                List<MovieObject> movieObjectList = new ArrayList<>();
+                noFavoriteTextView.setVisibility(View.INVISIBLE);
+                movieRV.setVisibility(View.VISIBLE);
+                while (data.moveToNext()) {
+                    int movieId = data.getInt(data.getColumnIndex(COLUMN_MOVIE_ID));
+                    String moviePoster = data.getString(data.getColumnIndex(COLUMN_MOVIE_POSTER));
+                    String overview = data.getString(data.getColumnIndex(COLUMN_OVERVIEW));
+                    double rating = data.getDouble(data.getColumnIndex(COLUMN_RATING));
+                    String releaseDate = data.getString(data.getColumnIndex(COLUMN_RELEASE_DATE));
+                    int voteCount = data.getInt(data.getColumnIndex(COLUMN_VOTE_COUNT));
+                    String originalTitle = data.getString(data.getColumnIndex(COLUMN_ORIGINAL_TITLE));
+                    double popularity = data.getDouble(data.getColumnIndex(COLUMN_POPULARITY));
+                    MovieObject movieObject = new MovieObject(originalTitle, moviePoster,
+                            overview, rating, popularity, releaseDate, voteCount, movieId);
+                    movieObjectList.add(movieObject);
+                    mAdapter.addAll(movieObjectList);
+                }
             }
         }
 
@@ -196,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDb = favoriteDBHelper.getWritableDatabase();
 
         progressBar = findViewById(R.id.progress_bar);
+        noFavoriteTextView = findViewById(R.id.no_favorite_list);
 
         //setting up the navigation drawer
         drawerLayout = findViewById(R.id.drawer);
@@ -204,7 +212,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -222,7 +229,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         movieRV.setAdapter(mAdapter);
 
         //if is no connection an error message will appear on the device
-
         if (isConnected()) {
             getLoaderManager().initLoader(MOVIE_LOADER_ID, null, movieLoader);
         } else {
@@ -232,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     /**
      * This is a method that will verify if the device has internet connection
+     *
      * @return true if exists connection and false otherwise
      */
     private boolean isConnected() {
@@ -248,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView selectedIconRated = findViewById(R.id.rated_list_movie_title);
         TextView selectedIconFavorite = findViewById(R.id.favorite_list_movie_title);
         getLoaderManager().initLoader(FAVORITE_LOADER, null, favoritesLoader);
-
         int id = item.getItemId();
         if (id == R.id.most_popular) {
             // sets order for the movie list by the most popular
@@ -269,14 +275,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getLoaderManager().restartLoader(MOVIE_LOADER_ID, null, movieLoader);
 
         } else if (id == R.id.favorite_movie) {
-            // sets order for the movie list by
+            // displays on the main layout the favorite movie list
             selectedIconPopularity.setVisibility(View.GONE);
             selectedIconRated.setVisibility(View.GONE);
             selectedIconFavorite.setVisibility(View.VISIBLE);
             drawerLayout.closeDrawer(GravityCompat.START);
             movieRV.setAdapter(mAdapter);
             getLoaderManager().restartLoader(FAVORITE_LOADER, null, favoritesLoader);
-
         }
         return true;
     }

@@ -23,7 +23,8 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@color/soft"
         android:textStyle="bold"
-        android:visibility="gone" />
+        android:visibility="gone"
+        tools:ignore="RtlHardcoded" />
 
     <TextView
         android:id="@+id/rated_list_movie_title"
@@ -33,7 +34,9 @@
         android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@color/soft"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        tools:ignore="RtlHardcoded" />
+
     <TextView
         android:id="@+id/favorite_list_movie_title"
         style="@style/MatchMatch"
@@ -43,6 +46,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@color/soft"
         android:textStyle="bold"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        tools:ignore="RtlHardcoded" />
 
 </LinearLayout>
