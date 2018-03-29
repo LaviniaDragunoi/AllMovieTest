@@ -4,18 +4,20 @@ import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
@@ -31,6 +33,7 @@ import com.example.user.allmovietest.utils.JsonUtils;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,12 +47,14 @@ import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_RATING;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_RELEASE_DATE;
 import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.COLUMN_VOTE_COUNT;
+import static com.example.user.allmovietest.data.FavoriteContract.FavoriteEntry.CONTENT_URI;
 import static java.lang.Integer.valueOf;
 
 /**
  * Main class of the project
  */
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int MOVIE_LOADER_ID = 3;
     public final int FAVORITE_LOADER = 6;
@@ -121,78 +126,50 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     };
 
-    //The loader that will help to load the favorite movies in in the main_activity.xml layout
-    public LoaderManager.LoaderCallbacks<Cursor> favoritesLoader = new LoaderManager.LoaderCallbacks<Cursor>() {
-        @SuppressLint("StaticFieldLeak")
-        @Override
-        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            return new AsyncTaskLoader<Cursor>(MainActivity.this) {
+    @Override
+    public Loader onCreateLoader(int id, Bundle args){
+        Uri URI = FavoriteContract.FavoriteEntry.CONTENT_URI;
+        CursorLoader cursorLoader = new CursorLoader(this,
+                URI,
+                null,
+                null,
+                null,
+                null);
+        return cursorLoader;
+    }
 
-                Cursor mFavoriteData = null;
-
-                @Override
-                protected void onStartLoading() {
-                    if (mFavoriteData != null) {
-                        // Delivers any previously loaded data immediately
-                        deliverResult(mFavoriteData);
-                    } else {
-                        // Force a new load
-                        forceLoad();
-                    }
-                }
-
-                @Override
-                public Cursor loadInBackground() {
-                    try {
-                        return getContentResolver().query(FavoriteContract.FavoriteEntry.CONTENT_URI,
-                                null,
-                                null,
-                                null,
-                                FavoriteContract.FavoriteEntry.COLUMN_RATING);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }
-
-                public void deliverResult(Cursor data) {
-                    mFavoriteData = data;
-                    super.deliverResult(data);
-                }
-            };
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            if (data.getCount() == 0) {
-                noFavoriteTextView.setVisibility(View.VISIBLE);
-                movieRV.setVisibility(View.INVISIBLE);
-            } else {
-                List<MovieObject> movieObjectList = new ArrayList<>();
-                noFavoriteTextView.setVisibility(View.INVISIBLE);
-                movieRV.setVisibility(View.VISIBLE);
-                while (data.moveToNext()) {
-                    int movieId = data.getInt(data.getColumnIndex(COLUMN_MOVIE_ID));
-                    String moviePoster = data.getString(data.getColumnIndex(COLUMN_MOVIE_POSTER));
-                    String overview = data.getString(data.getColumnIndex(COLUMN_OVERVIEW));
-                    double rating = data.getDouble(data.getColumnIndex(COLUMN_RATING));
-                    String releaseDate = data.getString(data.getColumnIndex(COLUMN_RELEASE_DATE));
-                    int voteCount = data.getInt(data.getColumnIndex(COLUMN_VOTE_COUNT));
-                    String originalTitle = data.getString(data.getColumnIndex(COLUMN_ORIGINAL_TITLE));
-                    double popularity = data.getDouble(data.getColumnIndex(COLUMN_POPULARITY));
-                    MovieObject movieObject = new MovieObject(originalTitle, moviePoster,
-                            overview, rating, popularity, releaseDate, voteCount, movieId);
-                    movieObjectList.add(movieObject);
-                    mAdapter.addAll(movieObjectList);
-                }
+    @Override
+    public void onLoadFinished(Loader loader, Cursor data) {
+        if (data.getCount() == 0) {
+            noFavoriteTextView.setVisibility(View.VISIBLE);
+            movieRV.setVisibility(View.INVISIBLE);
+        } else {
+            List<MovieObject> movieObjectList = new ArrayList<>();
+            noFavoriteTextView.setVisibility(View.INVISIBLE);
+            movieRV.setVisibility(View.VISIBLE);
+            while (data.moveToNext()) {
+                int movieId = data.getInt(data.getColumnIndex(COLUMN_MOVIE_ID));
+                String moviePoster = data.getString(data.getColumnIndex(COLUMN_MOVIE_POSTER));
+                String overview = data.getString(data.getColumnIndex(COLUMN_OVERVIEW));
+                double rating = data.getDouble(data.getColumnIndex(COLUMN_RATING));
+                String releaseDate = data.getString(data.getColumnIndex(COLUMN_RELEASE_DATE));
+                int voteCount = data.getInt(data.getColumnIndex(COLUMN_VOTE_COUNT));
+                String originalTitle = data.getString(data.getColumnIndex(COLUMN_ORIGINAL_TITLE));
+                double popularity = data.getDouble(data.getColumnIndex(COLUMN_POPULARITY));
+                MovieObject movieObject = new MovieObject(originalTitle, moviePoster,
+                        overview, rating, popularity, releaseDate, voteCount, movieId);
+                movieObjectList.add(movieObject);
+                mAdapter.addAll(movieObjectList);
             }
-        }
 
-        @Override
-        public void onLoaderReset(Loader<Cursor> loader) {
-            mAdapter.clearAll();
         }
-    };
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader){
+        mAdapter.clearAll();
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -254,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView selectedIconPopularity = findViewById(R.id.popularity_list_movie_title);
         TextView selectedIconRated = findViewById(R.id.rated_list_movie_title);
         TextView selectedIconFavorite = findViewById(R.id.favorite_list_movie_title);
-        getLoaderManager().initLoader(FAVORITE_LOADER, null, favoritesLoader);
+        getSupportLoaderManager().initLoader(FAVORITE_LOADER, null, this);
         int id = item.getItemId();
         if (id == R.id.most_popular) {
             // sets order for the movie list by the most popular
@@ -281,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             selectedIconFavorite.setVisibility(View.VISIBLE);
             drawerLayout.closeDrawer(GravityCompat.START);
             movieRV.setAdapter(mAdapter);
-            getLoaderManager().restartLoader(FAVORITE_LOADER, null, favoritesLoader);
+            getLoaderManager().restartLoader(FAVORITE_LOADER, null, this);
         }
         return true;
     }

@@ -112,7 +112,9 @@ public class DetailActivity extends AppCompatActivity {
         public void onLoadFinished(Loader<List<TrailerObject>> loader, List<TrailerObject> trailerObjectList) {
             progressBarTrailer.setVisibility(View.GONE);
             mTrailerAdapter.addAll(trailerObjectList);
-            if (trailerObjectList.isEmpty()) noTrailerTV.setVisibility(View.VISIBLE);
+            firstTrailer = trailerObjectList.get(0);
+            if(trailerObjectList.isEmpty()) noTrailerTV.setVisibility(View.VISIBLE);
+
         }
 
         @Override
@@ -292,21 +294,11 @@ public class DetailActivity extends AppCompatActivity {
                 if (shareIntent.resolveActivity(getPackageManager()) != null)
                     startActivity(shareIntent);
                 return true;
-            case android.R.id.home:
-                startActivity(getParentActivityIntent());
-                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    /**
-     * When the back button is clicked this method will sent on the main Activity layout
-     */
-    @SuppressLint("NewApi")
-    @Override
-    public void onBackPressed() {
-        startActivity(getParentActivityIntent());
-        super.onBackPressed();
-    }
+
 }
