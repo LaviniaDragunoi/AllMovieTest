@@ -153,9 +153,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                     } else {
                         Toast.makeText(mContext,
                                 mContext.getString(R.string.deleted), Toast.LENGTH_SHORT).show();
-                        moviesList.remove(position);
-                        notifyItemRemoved(position);
-                        notifyItemChanged(position);
+
                     }
                 } else {
                     favoriteView.setImageResource(R.drawable.ic_favorite_red);

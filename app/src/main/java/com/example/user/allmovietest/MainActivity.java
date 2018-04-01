@@ -145,8 +145,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             movieRV.setVisibility(View.INVISIBLE);
         } else {
             List<MovieObject> movieObjectList = new ArrayList<>();
-            noFavoriteTextView.setVisibility(View.INVISIBLE);
-            movieRV.setVisibility(View.VISIBLE);
             while (data.moveToNext()) {
                 int movieId = data.getInt(data.getColumnIndex(COLUMN_MOVIE_ID));
                 String moviePoster = data.getString(data.getColumnIndex(COLUMN_MOVIE_POSTER));
@@ -231,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView selectedIconPopularity = findViewById(R.id.popularity_list_movie_title);
         TextView selectedIconRated = findViewById(R.id.rated_list_movie_title);
         TextView selectedIconFavorite = findViewById(R.id.favorite_list_movie_title);
-        getSupportLoaderManager().initLoader(FAVORITE_LOADER, null, this);
+        getLoaderManager().initLoader(FAVORITE_LOADER, null, this);
         int id = item.getItemId();
         if (id == R.id.most_popular) {
             // sets order for the movie list by the most popular

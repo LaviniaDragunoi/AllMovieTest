@@ -3,6 +3,7 @@ package com.example.user.allmovietest.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import java.net.URI;
 import java.net.URL;
 
 /**

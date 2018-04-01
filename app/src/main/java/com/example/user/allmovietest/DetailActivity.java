@@ -238,6 +238,7 @@ public class DetailActivity extends AppCompatActivity {
                             DetailActivity.this, currentMovie.getMovieId());
                     if (moviesRemoved > 0) Toast.makeText(DetailActivity.this,
                             getString(R.string.deleted), Toast.LENGTH_SHORT).show();
+                    
                 } else {
                     favoriteViewDetailsContent.setImageResource(R.drawable.ic_favorite_red);
                     ContentValues cv = ManageFavoritesUtils.addMovieToFavoritesList(currentMovie);
