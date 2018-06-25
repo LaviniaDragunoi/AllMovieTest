@@ -144,7 +144,8 @@ public class DetailActivity extends AppCompatActivity {
                 public List<ReviewObject> loadInBackground() {
                     List<ReviewObject> reviewObjectList = new ArrayList<>();
                     try {
-                        URL requestUrl = JsonUtils.getUrlResponseById(valueOf(currentMovie.getMovieId()), REVIEW_URL_PATH);
+                        URL requestUrl = JsonUtils.getUrlResponseById(valueOf(currentMovie.getMovieId()),
+                                REVIEW_URL_PATH);
                         Response response = JsonUtils.fetchData(requestUrl.toString());
                         reviewObjectList = JsonUtils.parseReviewJson(response.body().string());
 

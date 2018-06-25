@@ -97,6 +97,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         //get the holder that should be updated for each item detail
         final ImageView moviePosterImageView = holder.moviePoster;
         String moviePosterUrlString = buildPosterUrl(movieItem.getMoviePoster());
+
         final TextView errorLoadMessage = holder.errorMessage;
         final TextView ratingValueTextView = holder.ratingValue;
         ratingValueTextView.setVisibility(View.INVISIBLE);
