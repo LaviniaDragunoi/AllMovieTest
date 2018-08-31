@@ -113,7 +113,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             favoriteView.setImageResource(R.drawable.ic_favorite);
         }
 
-        Picasso.with(mContext).load(moviePosterUrlString).into(moviePosterImageView,
+        Picasso.get().load(moviePosterUrlString).into(moviePosterImageView,
                 new com.squareup.picasso.Callback() {
                     @Override
                     public void onSuccess() {
@@ -123,7 +123,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                     }
 
                     @Override
-                    public void onError() {
+                    public void onError(Exception e) {
                         Log.e(LOG_TAG, String.valueOf(R.string.error_loading_movie));
                         errorLoadMessage.setVisibility(View.VISIBLE);
                     }

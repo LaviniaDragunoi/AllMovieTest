@@ -215,7 +215,7 @@ public class DetailActivity extends AppCompatActivity {
         currentMovie = intent.getParcelableExtra("Movie");
 
         String moviePosterUrlString = MovieAdapter.buildPosterUrl(currentMovie.getMoviePoster());
-        Picasso.with(this).load(moviePosterUrlString).into(posterMovie);
+        Picasso.get().load(moviePosterUrlString).into(posterMovie);
         displayMovieUI(currentMovie);
         setTitle(currentMovie.getOriginalTitle());
 
